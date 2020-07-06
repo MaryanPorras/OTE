@@ -12,18 +12,18 @@ function globalderivatives!(du,u,pa,θ)
 		h_w=zero(e)
 		h_e=zero(e)
 		∂hw∂e=zero(e) #∂hw∂e es gg()
-		∂he∂e=zero(e)	
+		∂he∂e=zero(e)
 	else
 		h_e=pa.modist.he(θ, e)
 		h_w=pa.modist.hw(θ, e)
-		if e<pa.dispar.θ_e_l+1e-9 
-			h_w=zero(e) 
+		if e<pa.dispar.θ_e_l+1e-9
+			h_w=zero(e)
 			∂hw∂e=zero(e) #∂hw∂e es gg()
-			∂he∂e=zero(e) 
+			∂he∂e=zero(e)
 		else
 			h_w = max(h_w, 0.0)
 			∂hw∂e = pa.modist.gg(θ,e) #f_θw(θ) f_θe(e)
-			∂he∂e = pa.modist.partial_he_e(θ,e)	
+			∂he∂e = pa.modist.partial_he_e(θ,e)
 		end
 	end
 
@@ -32,7 +32,7 @@ function globalderivatives!(du,u,pa,θ)
 	pa.compar.debugbool && println("ss = ", ForwardDiff.value.(ss))
 
 # 3. Deal with negative u
-	if uw<0.0 
+	if uw<0.0
 		du[1:6].=0.0
 		du[2]=1.0
 		du[4]=-1e16
@@ -41,16 +41,16 @@ function globalderivatives!(du,u,pa,θ)
 
 # 4. Find optimal controls
 	(n, z, l, p) = globalcontrols(ss, pa.prices, pa.ecopar, pa.compar.debugbool)
-	any(isnan,(n, z, l, p)) && error("Function find_derivatives gets NaN controls")
+	any(isnan,(n, z, l, p)) && error("Function globalderivatives gets NaN controls")
 
-# 5. Calculate interim terms		
+# 5. Calculate interim terms
 	h_tot= h_w + p*h_e
 	Vw = pa.ecopar.utilit*uw^pa.ecopar.ϕ + θ*l*ω - λ*uw - λ*pa.ecopar.χ*l^(1.0+pa.ecopar.ψ)/(1.0+pa.ecopar.ψ);
 	Ve = pa.ecopar.utilit*uw^pa.ecopar.ϕ + λ*e*n^pa.ecopar.α - λ*pa.ecopar.β*z^(1.0+pa.ecopar.σ)/(1.0+pa.ecopar.σ) - ω*(n-pa.ecopar.ς) - λ*uw;
 	pa.compar.debugbool && println("(Ve*he+phi_e)*p= ", ForwardDiff.value((Ve*h_e+ϕ_e)*p))
 
 #6. Create derivatives and return
-	du[1] = p 	# ̇e' 
+	du[1] = p 	# ̇e'
 	du[2] = -( Vw*∂hw∂e + Ve*p*∂he∂e + λ*n^pa.ecopar.α*p*h_e) # ϕ_e'
 	du[3] = pa.ecopar.χ*l^(1.0+pa.ecopar.ψ)/θ # u'
 	du[4] = (λ - pa.ecopar.utilit*pa.ecopar.ϕ*uw^(pa.ecopar.ϕ-1.0))*h_tot # μ'

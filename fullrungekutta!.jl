@@ -1,11 +1,11 @@
 function fullrungekutta!(model::OTEmodel)
 # 0. Unpack and preallocate
 # 0.1 Unpack
-	globalsize  = model.compar.globalsize  
+	globalsize  = model.compar.globalsize
 	fullsize	= model.compar.entrepsize+globalsize-1
 	α = model.ecopar.α
 	β = model.ecopar.β
-	σ = model.ecopar.σ	
+	σ = model.ecopar.σ
 # 0.2 Pre-allocate
 	h_e::Float64=NaN
 	h_w::Float64=NaN
@@ -13,14 +13,14 @@ function fullrungekutta!(model::OTEmodel)
 	θ::Float64=NaN
 	lenght_sol::Int64=0
 # 0.3 Auxiliary functions
-	Ve(nvar,zvar,evar,uvar)= ( model.ecopar.utilit*uvar^model.ecopar.ϕ + model.prices[1]*(evar*nvar^α 
+	Ve(nvar,zvar,evar,uvar)= ( model.ecopar.utilit*uvar^model.ecopar.ϕ + model.prices[1]*(evar*nvar^α
 			- β/(1.0+σ)*zvar^(1.0+σ) - uvar) - model.prices[2]*(nvar-model.ecopar.ς) )
 
 # 1. Define parameters and callback setm
 # 1.1 Build parameter struct
-	rkpar       = RKParameters(model.ecopar, model.compar, model.dispar, model.modist, model.prices)    
+	rkpar       = RKParameters(model.ecopar, model.compar, model.dispar, model.modist, model.prices)
 
-# 1.2 Callback set 
+# 1.2 Callback set
 	# 1.2.1 Domain Callback
 	tempstate	=ones(6)
 	callback_domain=GeneralDomain(statesdomain!, tempstate, save=false)
@@ -36,7 +36,6 @@ function fullrungekutta!(model::OTEmodel)
 						saveat=reverse(model.states[2, globalsize:fullsize]) )
 # 2.3 Fill states and controls
 	for i = fullsize:-1:globalsize
-		1:model.compar.entrepsize
 		# states[1, i]=solution_RKPack.t[i]
 		#Update vector of states:
 		model.states[4:7, i ] = entsolution[fullsize+1-i]
@@ -51,14 +50,13 @@ function fullrungekutta!(model::OTEmodel)
 # 3. Global problem
 # 3.1 Calculate ϕ_e from states and controls at globalsize
 	# Recall e and he are set at globalsize by previous for loop.
-	model.states[3,globalsize]= -( Ve(model.controls[1,globalsize], model.controls[2,globalsize],e,model.states[4,globalsize])*h_e 
+	model.states[3,globalsize]= -( Ve(model.controls[1,globalsize], model.controls[2,globalsize],e,model.states[4,globalsize])*h_e
 				+ model.states[5,globalsize]*model.controls[1,globalsize]^α*(1.0-β*model.controls[2,globalsize]^σ) )
-display(model.states[:,globalsize])
 
 # 3.2 Define and solve ODE problem
 	globalprob	= ODEProblem(globalderivatives!, model.states[2:7, globalsize],(model.states[1, globalsize], model.states[1, 1]), rkpar)
 	globalsolution = solve(globalprob, model.compar.alg, abstol=model.compar.abstol, reltol=model.compar.reltol,
-						callback=cbset, saveat=Iterators.reverse(model.states[1, 1:globalsize]) )	
+						callback=cbset, saveat=Iterators.reverse(model.states[1, 1:globalsize]) )
 # 3.3 Fill states and controls
 	(nstates, lenght_sol)=size(globalsolution)
 	model.states[1, 1:(globalsize-lenght_sol)].=NaN
@@ -79,10 +77,10 @@ display(model.states[:,globalsize])
 	end
 
 # 4. Print initial state for boundary conditions
-	Ve_first= Ve(model.controls[1:2,firstind]..., e, model.states[4,firstind]) 
+	Ve_first= Ve(model.controls[1:2,firstind]..., e, model.states[4,firstind])
 	display(model.states[:,firstind])
 	display(model.controls[:,firstind])
-	println("Ve*he+phi: ", Ve_first*h_e+model.states[3,firstind] ) 
+	println("Ve*he+phi: ", Ve_first*h_e+model.states[3,firstind] )
 	return lenght_sol
 end
 
@@ -101,5 +99,3 @@ function affect_Θ_e_l!(integrator)
 	println("hit")
 	terminate!(integrator)
 end
-
-

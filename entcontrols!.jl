@@ -25,20 +25,11 @@ function entcontrols!(controls::AbstractArray{T,1}, ss::Array{T,1}, prices::Arra
 	z_opt(nvar)     = - pa.σ*μ*nvar^pa.α/(λ*h_e);
 	nfoc(nvar,zvar) = λ*pa.α*e*nvar^(pa.α-1.0)*h_e - ω*h_e + pa.α*μ*nvar^(pa.α-1.0)*(1.0-pa.β*zvar^pa.σ);
 	nfoc_at_zopt(nvar) = nfoc(nvar,z_opt(nvar))
-	objective(nvar,zvar) = ( pa.utilit*u^pa.ϕ*h_e 
+	objective(nvar,zvar) = ( pa.utilit*u^pa.ϕ*h_e
 							+ λ*( e*nvar^pa.α - pa.β*zvar^(1.0+pa.σ)/(1.0+pa.σ) - u)*h_e
 							 - ω*nvar*h_e + μ*nvar^pa.α*(1.0-pa.β*zvar^pa.σ) )
 
-
-
-
-	n_opt(zvar)         = pa.α/ω/(1.0-pa.α)*(λ*pa.β/(1.0+pa.σ)*zvar^(1.0+pa.σ)-A_cons)
-	zfoc(nvar, zvar)    = λ*e*nvar^pa.α - ω*nvar - λ/pa.σ*zvar*(1.0-pa.β/(1.0+pa.σ)*zvar^pa.σ) + A_cons
-	zfoc_at_nopt(zvar)  = zfoc(n_opt(zvar), zvar)
-	zfoc_at_nmin(zvar)  = zfoc(pa.ς, zvar)
-
 # 2 Define cases and solve
-
 # 2.0 Check μ=0.0 and solve
 	if abs(μ)<1e-12
 		controls[1]=n_full_info

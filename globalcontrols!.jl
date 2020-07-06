@@ -18,7 +18,7 @@ function globalcontrols!(controls::AbstractArray{T,1}, ss::Array{T,1}, prices::A
 	θ::T   =ss[1]
 	e::T   =ss[2]
 	ϕ_e::T =ss[3]
-	u::T  =ss[4]
+	u::T   =ss[4]
 	μ::T   =ss[5]
 	h_e::T =ss[6]
 	h_w::T =ss[7]
@@ -52,7 +52,6 @@ function globalcontrols!(controls::AbstractArray{T,1}, ss::Array{T,1}, prices::A
 								+ ω*(θ*lvar*h_w-(nvar-pa.ς)*pvar*h_e) + ϕ_e*pvar ) # Hamiltonian. big parenthesis needed for multline
 
 # 2 Define cases and solve
-
 # 2.0 Check he=zero and solve
 	if h_e<1e-10
 		verbosebool && println("Case 0: h_e=0.0")
@@ -80,9 +79,9 @@ function globalcontrols!(controls::AbstractArray{T,1}, ss::Array{T,1}, prices::A
 				controls[4] = pa.χ*ln_max^(1.0+pa.ψ)/(θ*controls[1]^pa.α*(1.0-pa.β*controls[2]^pa.σ))
 			end
 		end
-		verbosebool && println("n = ", ForwardDiff.value(controls[1]), 
-								",  z = ", ForwardDiff.value(controls[2]), 
-								",  l = ", ForwardDiff.value(controls[3]), 
+		verbosebool && println("n = ", ForwardDiff.value(controls[1]),
+								",  z = ", ForwardDiff.value(controls[2]),
+								",  l = ", ForwardDiff.value(controls[3]),
 								",  p = ", ForwardDiff.value(controls[4]) )
 		return nothing
 	end
@@ -94,9 +93,9 @@ function globalcontrols!(controls::AbstractArray{T,1}, ss::Array{T,1}, prices::A
 		controls[1] = nn_z0 # nn
 		h_w*den_l(controls[1],controls[2]) < 0.0 ? (controls[3]=ln_max) : (controls[3]=ll_opt(controls[1],controls[2]))
 		controls[4] = (pa.χ*controls[3]^(1.0+pa.ψ))/den_p(controls[1],controls[2])
-		verbosebool && println("n = ", ForwardDiff.value(controls[1]), 
-								",  z = ", ForwardDiff.value(controls[2]), 
-								",  l = ", ForwardDiff.value(controls[3]), 
+		verbosebool && println("n = ", ForwardDiff.value(controls[1]),
+								",  z = ", ForwardDiff.value(controls[2]),
+								",  l = ", ForwardDiff.value(controls[3]),
 								",  p = ", ForwardDiff.value(controls[4]) )
 		return nothing
 	end
@@ -141,9 +140,9 @@ function globalcontrols!(controls::AbstractArray{T,1}, ss::Array{T,1}, prices::A
 				controls[4]=corner_pp
 				max_hamiltonian=corner_hamiltonian
 		end
-		verbosebool && println("n = ", ForwardDiff.value(controls[1]), 
-								",  z = ", ForwardDiff.value(controls[2]), 
-								",  l = ", ForwardDiff.value(controls[3]), 
+		verbosebool && println("n = ", ForwardDiff.value(controls[1]),
+								",  z = ", ForwardDiff.value(controls[2]),
+								",  l = ", ForwardDiff.value(controls[3]),
 								",  p = ", ForwardDiff.value(controls[4]) )
 
 	return nothing
@@ -162,7 +161,7 @@ function globalcontrols!(controls::AbstractArray{T,1}, ss::Array{T,1}, prices::A
 		max_hamiltonian = objective(controls[3], controls[1], controls[4], controls[2])
 	end
 	# 2.3.2 True corner
-	if z_u>0.0 
+	if z_u>0.0
 		h_w*den_l(controls[1], z_u)<0.0 ? (corner_ll=ln_max) : (corner_ll=ll_opt(controls[1], z_u))
 		corner_pp = (pa.χ*corner_ll^(1.0+pa.ψ))/den_p(controls[1], z_u);
 		corner_hamiltonian = objective(corner_ll, controls[1], corner_pp, z_u)
@@ -193,9 +192,9 @@ function globalcontrols!(controls::AbstractArray{T,1}, ss::Array{T,1}, prices::A
 		@warn("Case 3.c Corner n, z=0.0.")
 	end
 	#Final Output:
-		verbosebool && println("n = ", ForwardDiff.value(controls[1]), 
-								",  z = ", ForwardDiff.value(controls[2]), 
-								",  l = ", ForwardDiff.value(controls[3]), 
+		verbosebool && println("n = ", ForwardDiff.value(controls[1]),
+								",  z = ", ForwardDiff.value(controls[2]),
+								",  l = ", ForwardDiff.value(controls[3]),
 								",  p = ", ForwardDiff.value(controls[4]) )
 end
 
@@ -204,4 +203,3 @@ function globalcontrols(ss::Array{T,1}, prices::Array{Float64,1}, pa, verboseboo
 	globalcontrols!(controls, ss, prices, pa, verbosebool)
 	return Tuple(controls)
 end
-
