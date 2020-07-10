@@ -256,20 +256,25 @@ function graphs_debug(data::DataFrame, dir::AbstractString)
 	savefig("Z_Debug.png")
 
 # 4. Graphs for integrals:
-	fig, A_graphs=plt.subplots(1,2)
-	fig.suptitle("A Graphs")
-		#Value for A:
-	A_graphs[1].plot(data.:θw, data.:A)
-	A_graphs[1].set(ylabel="A",xlabel="θw")
-		#Bound for A:
-	A_graphs[2].plot(data.:θw, data.:Afull)
-	A_graphs[2].set(ylabel="A Bound",xlabel="θw")
+	fig, debug_propositions=plt.subplots(2,2)
+	fig.suptitle("Debugs for propositions")
+		#4.1. μ - integral proposition 1:
+	debug_propositions[1,1].plot(data.:θw, (data[:, :μ] - data[:, :Prop1LSDebug]))
+	debug_propositions[1,1].set(ylabel="μ - integral", xlabel="θw")
+		#4.2. Difference from right and left side of proposition 1:
+	debug_propositions[1,2].plot(data.:θw, (- data[:, :μ] - data[:, :Prop1RS1] - data[:, :Prop1RS2]))
+	debug_propositions[1,2].set(ylabel="Difference in sides proposition 1",xlabel="θw")
+		#4.3. Difference from right and left side of proposition 2:
+	debug_propositions[2,1].plot(data.:θw, (data[:, :Prop2LS1] - data[:, :Prop2RS1]))
+	debug_propositions[2,1].set(ylabel="Difference in sides proposition 2",xlabel="θw")
+		#4.4. Difference from right and left side of proposition 3:
+	#debug_propositions[2,2].plot(data.:θw, (data[:, :Prop1RS2] + data[:, :Prop3LS2] - data[:, :Prop3RS1] + repeat([data[globalsize, :μ]],fullsize) ) )
+	debug_propositions[2,2].plot(data.:θw, (data[:, :Prop1RS2] + data[:, :Prop3LS2] - data[:, :Prop3RS1] ) )
+	debug_propositions[2,2].set(ylabel="Difference in sides proposition 3",xlabel="θw")
 
-	prop1.plot(data[1:globalsize,:].:θw, -data[1:globalsize,:].:μ)
+	savefig("Propositions_Debug.png")
 
-	savefig("A_Debug.png")
-
-	cd(original_dir) #To get back to the oroginal directory
+	cd(original_dir) #To get back to the original directory
 end
 
 function graphs_OtherResults(data::DataFrame, dir::AbstractString)
@@ -282,8 +287,8 @@ function graphs_OtherResults(data::DataFrame, dir::AbstractString)
 	original_dir = pwd() #To save the original directory.
 	cd(dir)
 	# 0.3. Define the sizes of the global and entrepreneur problem for the graphs:
-	globalsize = model.compar.globalsize
-	fullsize   = model.compar.entrepsize+globalsize-1
+	(fullsize,) = size(data)
+	globalsize = fullsize-model.compar.entrepsize
 
 # 1. Graphs for the propositions:
 	#Proposition 1
@@ -309,7 +314,8 @@ function graphs_OtherResults(data::DataFrame, dir::AbstractString)
 	prop3.plot(data[1:globalsize,:].:θw, data[1:globalsize,:].:Prop1RS2)
 	prop3.plot(data[1:globalsize,:].:θw, data[1:globalsize,:].:Prop3LS2)
 	prop3.plot(data[1:globalsize,:].:θw, data[1:globalsize,:].:Prop3RS1)
-	prop3.legend(["εz z/n^α he", "1/λ [Ve-Vw] g 1/ue'", "∫( 1-ϕ/λ uw^ϕ-1 ) he"],loc="upper right")
+	prop3.plot(data[1:globalsize,:].:θw, repeat([data[globalsize, :μ]],globalsize) )
+	prop3.legend(["εz z/n^α he", "1/λ [Ve-Vw] g 1/ue'", "∫( 1-ϕ/λ uw^ϕ-1 ) he". "μe(θw_u)"],loc="upper right")
 	prop3.set(xlabel="θw")
 
 	savefig("Propositions.png")

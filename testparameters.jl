@@ -18,7 +18,7 @@ ecopar=EconomicParameters(
 	0.12873,# δ::Float64	# Entrepreners' informal demand scale parameter
 	0.7341,	# γ::Float64	# Entrepreneurs' informal demand elasticity
 	# 1.4 Planner's parameters
-	true,	# utilit::Bool	# Indicator of utilitarian planner
+	false,	# utilit::Bool	# Indicator of utilitarian planner
 	0.1,	# ϕ::Float64 	# Concave utilitarian parameter
 	0.15 	# G::Float64	# Expenditure needs
 	)	# Close constructor call
@@ -69,7 +69,7 @@ compar=ComputationParameters(
 	500,	# entsize::Int64
 	1e-8,	# abstol::Float64
 	1e-5,	# reltol::Float64
-	true,	# verbosebool::Bool
+	false,	# verbosebool::Bool
 	false,	# debugbool::Bool
 	 Rosenbrock23()	# alg::T where T<:OrdinaryDiffEqAlgorithm
 	# Tsit5()		# alg::T where T<:OrdinaryDiffEqAlgorithm
@@ -87,11 +87,11 @@ if uniform == true #For uniform case
 	u_u		=   770
 	#Rawlsian case:
 	# 4.1 Guess for prices
-	#λ_bar	=   1.0
-	#ω_bar	=   1.3
-	#priceguess= [λ_bar, ω_bar]
+	λ_bar	=   1.0
+	ω_bar	=   1.34318
+	priceguess= [λ_bar, ω_bar]
 	# 4.2 Guess for final states
-	#u_u		=   640.0
+	u_u		=   640.7
 else #For log-normal case
 	# 4.1 Guess for prices
 	λ_bar	=   1.0

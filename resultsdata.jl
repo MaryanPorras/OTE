@@ -29,13 +29,18 @@ function modeldata(model::OTEmodel,lenght_sol::Int64)
 	for i in [MarginalTaxes,taxliabilities,controls_full,debug,Propositions]
 		fill!(i,NaN);
 	end #end for
+	# 0.5 Define the values of l and p in θ_w_u:
+	l_u::Float64    = ( ω*model.states[1,globalsize]/(λ*χ) )^(1.0/ψ)
+	p_u::Float64    = ( χ/model.states[1,globalsize]*l_u^(1.0+ψ)/(model.controls[1,globalsize]^α*(1.0-β*model.controls[2,globalsize]^σ)) )
+	model.controls[3,globalsize] = l_u
+	model.controls[4,globalsize] = p_u
 
 # 1. Define some of the elements for the dataframe:
 	for i in first_sol_Global:fullsize
 		# 1.1 Productivities and States:
 		θw  = model.states[1,i]
 		e 	= model.states[2,i]
-		ϕ_e	= model.states[3,i]
+		ϕe	= model.states[3,i]
 		u	= model.states[4,i]
 		μ	= model.states[5,i]
 		L	= model.states[6,i]
@@ -50,8 +55,8 @@ function modeldata(model::OTEmodel,lenght_sol::Int64)
 		MarginalTaxes[i,2] = β*z^σ #Tc'
 		MarginalTaxes[i,3] = ( θw*ω-λ*χ*l^ψ )/(θw*ω) #Tl'
 		# 1.4 Values for the planner:
-		Vw = (utilit*u - λ*u) + ω*l*θw - λ*χ/(1.0+ψ)*l^(1.0+ψ);
-        Ve = (utilit*u - λ*u) + λ*e*n^α - λ*β/(1.0+σ)*z^(1.0+σ) - ω*( n-ς );
+		Vw = (utilit*u^ϕ - λ*u) + ω*l*θw - λ*χ/(1.0+ψ)*l^(1.0+ψ);
+        Ve = (utilit*u^ϕ - λ*u) + λ*e*n^α - λ*β/(1.0+σ)*z^(1.0+σ) - ω*( n-ς );
 
 		# 1.4 Taxes Liabilities (also includes the tax base):
 			# 1.4.1 Tax bases (Recall that for Tc we need to have the value of Tn):
@@ -85,22 +90,30 @@ function modeldata(model::OTEmodel,lenght_sol::Int64)
 		#1.5 Propositions: Here we put the information for the thing we don't need to integrate
 		# 1.5.1 The first proposition:
 			# Right-hand side of the equation:
-			Propositions[i,2] = MarginalTaxes[i,3]/(1.0-MarginalTaxes[i,3])*ε_l_1Tl′/(1.0-ε_l_1Tl′)*θw*model.modist.hw(θw, e)
-			Propositions[i,3] = ε_z_Tc′*z/n^α*model.modist.he(θw, e)
+			Propositions[i,2] = MarginalTaxes[i,3]/(1.0-MarginalTaxes[i,3])*ε_l_1Tl′/(1.0+ε_l_1Tl′)*θw*model.modist.hw(θw, e)
+			if i <= globalsize
+				Propositions[i,3] = ε_z_Tc′*z/n^α*model.modist.he(θw, e)
+			else
+				Propositions[i,3] = ε_z_Tc′*z/n^α*model.modist.he(model.dispar.θ_w_u, e) #We keep θ_w_u for the entrepreneurs' problem
+			end  #end if
 		# 1.5.2 The second proposition
 			Propositions[i,4] = ε_z_Tc′*z/n^α
-			Propositions[i,5] = MarginalTaxes[i,1]/(1.0+MarginalTaxes[i,1])/(1.0-MarginalTaxes[i,2])*e
+			Propositions[i,5] = MarginalTaxes[i,1]/( (1.0+MarginalTaxes[i,1])*(1.0-MarginalTaxes[i,2]) )*e
 
 		# 1.6 Full information controls
-		controls_full[i,1]=(α*λ*e/ω)^(1.0/(1.0-α)) #n full information
-		controls_full[i,2]=((θw*ω)/(λ*χ))^(1.0/ψ) #l full information
+			controls_full[i,1]=(α*λ*e/ω)^(1.0/(1.0-α)) #n full information
+			controls_full[i,2]=((θw*ω)/(λ*χ))^(1.0/ψ) #l full information
 
 		# 1.7 Debug variables (marginal utilities, A and max evasion)
 		debug[i,1] = model.modist.hw(θw, e) #h_w
-		debug[i,2] = model.modist.he(θw, e) #h_e
+		if i <= globalsize
+			debug[i,2] = model.modist.he(θw, e) #h_e
+		else
+			debug[i,2] = model.modist.he(model.dispar.θ_w_u, e) #h_e
+		end  #end if
 		debug[i,3] = χ*l^(1.0+ψ)/u; #u_w'
 		debug[i,4] = (n^α)*(1.0-β*z^σ); #u_e'
-		debug[i,5] = ω*ς+(utilit*u^ϕ)-(λ*u)+(ϕ_e/debug[i,2]); #A
+		debug[i,5] = ω*ς+(utilit*u^ϕ)-(λ*u)+(ϕe/debug[i,2]); #A
 		debug[i,6] = -(1.0-α)/α*ω*controls_full[i,1]; #A if z is 0 and n_full_info
 		debug[i,7] = (λ*e*controls_full[i,1]^α)-( ω*(controls_full[i,1]-ς) ); #Max posible evasion
 	end # end for
@@ -117,7 +130,7 @@ function modeldata(model::OTEmodel,lenght_sol::Int64)
 			previous_sol = Propositions[i+1,7]
 			average_functions = ( (1.0-utilit*ϕ*model.states[4,i]^(ϕ-1.0)/λ)*(model.modist.he(model.dispar.θ_w_u, model.states[2,i])) +
 								  (1.0-utilit*ϕ*model.states[4,i+1]^(ϕ-1.0)/λ)*(model.modist.he(model.dispar.θ_w_u, model.states[2,i+1])) )/2.0
-			distance_interval = (model.states[1,i]-model.states[1,i+1])
+			distance_interval = (model.states[2,i]-model.states[2,i+1])
 			sol_int      = NaN
 			sol_int      = previous_sol + average_functions*distance_interval;
 			Propositions[i,7] = sol_int
@@ -129,7 +142,8 @@ function modeldata(model::OTEmodel,lenght_sol::Int64)
 			#This is the first value for the integral
 			Propositions[i,1] = 0.0 #Is the value for μ in the upper bound
 			Propositions[i,6] = 0.0 #Is the value for the left side of the equation of proposition 3
-			Propositions[i,7] = 0.0 + Propositions[i+1,7] #Is the value for the right side of the equation of proposition 3
+			#Propositions[i,7] = 0.0 + Propositions[i+1,7] #Is the value for the right side of the equation of proposition 3
+			Propositions[i,7] = 0.0 #Is the value for the right side of the equation of proposition 3
 		else
 			# Get the values of the integrals:
 			for j in [1,6,7] #We are solving for the integral.
@@ -139,11 +153,18 @@ function modeldata(model::OTEmodel,lenght_sol::Int64)
 					average_functions = ( (1.0-utilit*ϕ*model.states[4,i]^(ϕ-1.0)/λ)*(debug[i,1]+debug[i,2]*model.controls[4,i]) +
 										  (1.0-utilit*ϕ*model.states[4,i+1]^(ϕ-1.0)/λ)*(debug[i+1,1]+debug[i+1,2]*model.controls[4,i+1]) )/2.0
 				elseif j == 6
-					average_functions = ( (taxliabilities[i,4]+taxliabilities[i,5]-taxliabilities[i,6])*model.modist.gg(model.states[1,i], model.states[2,i])/(model.controls[1,i]*(1.0-β*model.controls[2,i]^σ)) +
-										  (taxliabilities[i+1,4]+taxliabilities[i+1,5]-taxliabilities[i+1,6])*model.modist.gg(model.states[1,i+1], model.states[2,i+1])/(model.controls[1,i+1]*(1.0-β*model.controls[2,i+1]^σ)) )/2.0
+					#average_functions = ( (taxliabilities[i,4]+taxliabilities[i,5]-taxliabilities[i,6])*model.modist.gg(model.states[1,i], model.states[2,i])/(model.controls[1,i]^α*(1.0-β*model.controls[2,i]^σ)) +
+					#					  (taxliabilities[i+1,4]+taxliabilities[i+1,5]-taxliabilities[i+1,6])*model.modist.gg(model.states[1,i+1], model.states[2,i+1])/(model.controls[1,i+1]^α*(1.0-β*model.controls[2,i+1]^σ)) )/2.0
+					  #Define Vw and Ve for one of the integrals in proposition 3:
+			  		Vw  = (utilit*model.states[4,i]^ϕ - λ*model.states[4,i]) + ω*model.controls[3,i]*model.states[1,i] - λ*χ/(1.0+ψ)*model.controls[3,i]^(1.0+ψ);
+			  		Ve  = (utilit*model.states[4,i]^ϕ - λ*model.states[4,i]) + λ*model.states[2,i]*model.controls[1,i]^α - λ*β/(1.0+σ)*model.controls[2,i]^(1.0+σ) - ω*( model.controls[1,i]-ς );
+					Vw1 = (utilit*model.states[4,i+1]^ϕ - λ*model.states[4,i+1]) + ω*model.controls[3,i+1]*model.states[1,i+1] - λ*χ/(1.0+ψ)*model.controls[3,i+1]^(1.0+ψ);
+			  		Ve1 = (utilit*model.states[4,i+1]^ϕ - λ*model.states[4,i+1]) + λ*model.states[2,i+1]*model.controls[1,i+1]^α - λ*β/(1.0+σ)*model.controls[2,i+1]^(1.0+σ) - ω*( model.controls[1,i+1]-ς );
+					average_functions = ( 1.0/λ*(Ve - Vw)*model.modist.gg(model.states[1,i], model.states[2,i])/(model.controls[1,i]^α*(1.0-β*model.controls[2,i]^σ) ) +
+										  1.0/λ*(Ve1 - Vw1)*model.modist.gg(model.states[1,i+1], model.states[2,i+1])/(model.controls[1,i+1]^α*(1.0-β*model.controls[2,i+1]^σ) ) )/2.0
 				else
-					average_functions = ( (1.0-utilit*ϕ*model.states[4,i]^(ϕ-1.0)/λ)*(model.modist.he(model.states[1,i], model.states[2,i])*model.controls[4,i]) +
-										  (1.0-utilit*ϕ*model.states[4,i+1]^(ϕ-1.0)/λ)*(model.modist.he(model.states[1,i+1], model.states[2,i+1])*model.controls[4,i+1]) )/2.0
+					average_functions = ( (1.0-utilit*ϕ*model.states[4,i]^(ϕ-1.0)/λ)*(model.controls[4,i]*model.modist.he(model.states[1,i], model.states[2,i])) +
+										  (1.0-utilit*ϕ*model.states[4,i+1]^(ϕ-1.0)/λ)*(model.controls[4,i+1]*model.modist.he(model.states[1,i+1], model.states[2,i+1])) )/2.0
 				end # end if
 				distance_interval = (model.states[1,i]-model.states[1,i+1])
 				sol_int      = NaN
@@ -163,4 +184,5 @@ function modeldata(model::OTEmodel,lenght_sol::Int64)
 	Results_DF = Results_DF[first_sol_Global:fullsize,:]
 	#Results_DF[!, :asdf] = Results_DF[:, :n] - Results_DF[:, :z]
 	return Results_DF
+
 end # end function
