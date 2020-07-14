@@ -94,7 +94,7 @@ function graphs_MainGlobal(data::DataFrame, dir::AbstractString)
 	margtax[2,1].set(ylabel="τ_n'", xlabel="ω n")
 		#τ_c:
 	margtax[2,2].plot(data[1:globalsize,:].:baseTc, data[1:globalsize,:].:Tc′)
-	margtax[2,2].set(ylabel="τ_c'", xlabel="e*n^α- ω n-Tn -z")
+	margtax[2,2].set(ylabel="τ_c'", xlabel="e*n^α- ω*(n - ̅m) -Tn -z")
 		#τ_l:
 	margtax[2,3].plot(data[1:globalsize,:].:baseTl, data[1:globalsize,:].:Tl′)
 	margtax[2,3].set(ylabel="τ_l'", xlabel="θw l ω")
@@ -181,7 +181,7 @@ function graphs_MainGloAndEnt(data::DataFrame, dir::AbstractString)
 	margtax[2,1].set(ylabel="T_n", xlabel="ω n")
 		#τ_c:
 	margtax[2,2].plot(data.:baseTc, data.:Tc′)
-	margtax[2,2].set(ylabel="T_c", xlabel="e*n^α- ω n - Tn -z")
+	margtax[2,2].set(ylabel="T_c", xlabel="e*n^α- ω*(n-̅m) - Tn -z")
 
 	savefig("MarginalTaxesMainGloAndEnt.png")
 
@@ -231,7 +231,7 @@ function graphs_debug(data::DataFrame, dir::AbstractString)
 	#Global problem
 		#Value for max possible evasion:
 		Z_graphs[1,1].plot(data[1:globalsize,:].:θw, data[1:globalsize,:].:MaxEvasion)
-		Z_graphs[1,1].set(ylabel="λen^α - ωn",xlabel="θw")
+		Z_graphs[1,1].set(ylabel="λen^α - ω*(n-̅m)",xlabel="θw")
 		#Evasion in model:
 		Z_graphs[1,2].plot(data[1:globalsize,:].:θw, data[1:globalsize,:].:z)
 		Z_graphs[1,2].set(ylabel="z",xlabel="θw")
@@ -243,14 +243,14 @@ function graphs_debug(data::DataFrame, dir::AbstractString)
 	#Entrepreneurs problem
 		#Value for max possible evasion:
 		Z_graphs[2,1].plot(data[globalsize:fullsize,:].:θe, data[globalsize:fullsize,:].:MaxEvasion)
-		Z_graphs[2,1].set(ylabel="λθen^α - ωn",xlabel="θe")
+		Z_graphs[2,1].set(ylabel="λθen^α - ω*(n-̅m)",xlabel="θe")
 		#Evasion in model:
 		Z_graphs[2,2].plot(data[globalsize:fullsize,:].:θe, data[globalsize:fullsize,:].:z)
 		Z_graphs[2,2].set(ylabel="z",xlabel="θe")
 		#Combined:
 		Z_graphs[2,3].plot(data[globalsize:fullsize,:].:θe, data[globalsize:fullsize,:].:MaxEvasion,
-							data[globalsize:fullsize,:].:θe, data[globalsize:fullsize,:].:z)
-		Z_graphs[2,3].set(ylabel="λen^α - ωn or z", xlabel="θe")
+						   data[globalsize:fullsize,:].:θe, data[globalsize:fullsize,:].:z)
+		Z_graphs[2,3].set(ylabel="λen^α - ω*(n-̅m) or z", xlabel="θe")
 		plt.legend(["λen^α - ωn","z"],loc="upper right")
 
 	savefig("Z_Debug.png")
@@ -268,7 +268,6 @@ function graphs_debug(data::DataFrame, dir::AbstractString)
 	debug_propositions[2,1].plot(data.:θw, (data[:, :Prop2LS1] - data[:, :Prop2RS1]))
 	debug_propositions[2,1].set(ylabel="Difference in sides proposition 2",xlabel="θw")
 		#4.4. Difference from right and left side of proposition 3:
-	#debug_propositions[2,2].plot(data.:θw, (data[:, :Prop1RS2] + data[:, :Prop3LS2] - data[:, :Prop3RS1] + repeat([data[globalsize, :μ]],fullsize) ) )
 	debug_propositions[2,2].plot(data.:θw, (data[:, :Prop1RS2] + data[:, :Prop3LS2] - data[:, :Prop3RS1] ) )
 	debug_propositions[2,2].set(ylabel="Difference in sides proposition 3",xlabel="θw")
 

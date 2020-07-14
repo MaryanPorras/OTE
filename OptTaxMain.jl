@@ -10,7 +10,7 @@
 fig_graphs = true # Indicator to print figures (true is when we print figures).
 fig_graphs && (fig_main = true) # Indicator for main figures.
 fig_graphs && (fig_GloAndEnt = false) # Indicator for figures of both problems.
-fig_graphs && (fig_debug = true) # Indicator for debug figures.
+fig_graphs && (fig_debug = false) # Indicator for debug figures.
 fig_graphs && (fig_others = false) # Indicator for debug figures.
 
 # 1 Load packages definitions and functions
@@ -32,15 +32,10 @@ initializeOTEmodel!(model, priceguess, finalstateguess)
 # We need a boundary problem shooting algorithm.
 lenght_sol = fullrungekutta!(model)
 
-# 5 Generate results (DataFrames types). TODO
-#		Function must receile a model and generate matrices
-#Results_DF = DataFrame( hcat(transpose(model.states),transpose(model.controls)),
-#						[:θw, :θe, :ϕe, :u, :μ, :L, :Y, :n, :z, :l, :p] )
-#Results_DF[!, :asdf] = Results_DF[:, :n] - Results_DF[:, :z]
+# 5 Generate results
 Results_DF = modeldata(model,lenght_sol)
 
-# 6 Plot results. TODO
-# 		Separate output vs diagnostics figures. save in Graphs Folder
+# 6 Plot results
 fig_graphs && (fig_main && graphs_MainGlobal(Results_DF,".\\Graphs"))
 fig_graphs && (fig_GloAndEnt && graphs_MainGloAndEnt(Results_DF,".\\Graphs"))
 fig_graphs && (fig_debug && graphs_debug(Results_DF,".\\Graphs"))

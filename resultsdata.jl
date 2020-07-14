@@ -15,7 +15,7 @@ function modeldata(model::OTEmodel,lenght_sol::Int64)
 	# 0.3 Size of the problem:
 	globalsize = model.compar.globalsize
 	fullsize   = model.compar.entrepsize+globalsize-1
-	first_sol_Global = globalsize - lenght_sol + 1 #The first θw where there is a solution in the globla problem
+	first_sol_Global = globalsize - lenght_sol + 1 #The first θw where there is a solution in the global problem
 	# 0.4 Elasticities for the propositions:
 	ε_l_1Tl′ = 1.0/ψ;
 	ε_l_θw   = ε_l_1Tl′;
@@ -87,13 +87,13 @@ function modeldata(model::OTEmodel,lenght_sol::Int64)
 				end #end for
 			end #end if
 
-		#1.5 Propositions: Here we put the information for the thing we don't need to integrate
+		#1.5 Propositions: Here we put the information for the things we don't need to integrate
 		# 1.5.1 The first proposition:
 			# Right-hand side of the equation:
 			Propositions[i,2] = MarginalTaxes[i,3]/(1.0-MarginalTaxes[i,3])*ε_l_1Tl′/(1.0+ε_l_1Tl′)*θw*model.modist.hw(θw, e)
 			if i <= globalsize
 				Propositions[i,3] = ε_z_Tc′*z/n^α*model.modist.he(θw, e)
-			else
+			else #This is for the entrepreneurs problem.
 				Propositions[i,3] = ε_z_Tc′*z/n^α*model.modist.he(model.dispar.θ_w_u, e) #We keep θ_w_u for the entrepreneurs' problem
 			end  #end if
 		# 1.5.2 The second proposition
@@ -108,14 +108,14 @@ function modeldata(model::OTEmodel,lenght_sol::Int64)
 		debug[i,1] = model.modist.hw(θw, e) #h_w
 		if i <= globalsize
 			debug[i,2] = model.modist.he(θw, e) #h_e
-		else
+		else #This is for the entrepreneurs problem
 			debug[i,2] = model.modist.he(model.dispar.θ_w_u, e) #h_e
 		end  #end if
-		debug[i,3] = χ*l^(1.0+ψ)/u; #u_w'
-		debug[i,4] = (n^α)*(1.0-β*z^σ); #u_e'
-		debug[i,5] = ω*ς+(utilit*u^ϕ)-(λ*u)+(ϕe/debug[i,2]); #A
+		debug[i,3] = χ/θw*l^(1.0+ψ); #u_w'
+		debug[i,4] = n^α*(1.0-β*z^σ); #u_e'
+		debug[i,5] = ω*ς+(utilit*u^ϕ-λ*u)+ϕe/debug[i,2]; #A
 		debug[i,6] = -(1.0-α)/α*ω*controls_full[i,1]; #A if z is 0 and n_full_info
-		debug[i,7] = (λ*e*controls_full[i,1]^α)-( ω*(controls_full[i,1]-ς) ); #Max posible evasion
+		debug[i,7] = λ*e*controls_full[i,1]^α - ω*(controls_full[i,1]-ς); #Max posible evasion
 	end # end for
 
 	#Now we solve the integrals in reverse
@@ -142,7 +142,6 @@ function modeldata(model::OTEmodel,lenght_sol::Int64)
 			#This is the first value for the integral
 			Propositions[i,1] = 0.0 #Is the value for μ in the upper bound
 			Propositions[i,6] = 0.0 #Is the value for the left side of the equation of proposition 3
-			#Propositions[i,7] = 0.0 + Propositions[i+1,7] #Is the value for the right side of the equation of proposition 3
 			Propositions[i,7] = 0.0 #Is the value for the right side of the equation of proposition 3
 		else
 			# Get the values of the integrals:
@@ -153,9 +152,7 @@ function modeldata(model::OTEmodel,lenght_sol::Int64)
 					average_functions = ( (1.0-utilit*ϕ*model.states[4,i]^(ϕ-1.0)/λ)*(debug[i,1]+debug[i,2]*model.controls[4,i]) +
 										  (1.0-utilit*ϕ*model.states[4,i+1]^(ϕ-1.0)/λ)*(debug[i+1,1]+debug[i+1,2]*model.controls[4,i+1]) )/2.0
 				elseif j == 6
-					#average_functions = ( (taxliabilities[i,4]+taxliabilities[i,5]-taxliabilities[i,6])*model.modist.gg(model.states[1,i], model.states[2,i])/(model.controls[1,i]^α*(1.0-β*model.controls[2,i]^σ)) +
-					#					  (taxliabilities[i+1,4]+taxliabilities[i+1,5]-taxliabilities[i+1,6])*model.modist.gg(model.states[1,i+1], model.states[2,i+1])/(model.controls[1,i+1]^α*(1.0-β*model.controls[2,i+1]^σ)) )/2.0
-					  #Define Vw and Ve for one of the integrals in proposition 3:
+					#Define Vw and Ve for one of the integrals in proposition 3:
 			  		Vw  = (utilit*model.states[4,i]^ϕ - λ*model.states[4,i]) + ω*model.controls[3,i]*model.states[1,i] - λ*χ/(1.0+ψ)*model.controls[3,i]^(1.0+ψ);
 			  		Ve  = (utilit*model.states[4,i]^ϕ - λ*model.states[4,i]) + λ*model.states[2,i]*model.controls[1,i]^α - λ*β/(1.0+σ)*model.controls[2,i]^(1.0+σ) - ω*( model.controls[1,i]-ς );
 					Vw1 = (utilit*model.states[4,i+1]^ϕ - λ*model.states[4,i+1]) + ω*model.controls[3,i+1]*model.states[1,i+1] - λ*χ/(1.0+ψ)*model.controls[3,i+1]^(1.0+ψ);
@@ -182,7 +179,6 @@ function modeldata(model::OTEmodel,lenght_sol::Int64)
 							:Prop2LS1, :Prop2RS1, :Prop3LS2, :Prop3RS1, :nfull, :lfull,
 							:hw, :he, :uw′, :ue′, :A, :Afull, :MaxEvasion] )
 	Results_DF = Results_DF[first_sol_Global:fullsize,:]
-	#Results_DF[!, :asdf] = Results_DF[:, :n] - Results_DF[:, :z]
 	return Results_DF
 
 end # end function
