@@ -6,6 +6,10 @@ function fullrungekutta!(model::OTEmodel)
 	α = model.ecopar.α
 	β = model.ecopar.β
 	σ = model.ecopar.σ
+	ψ = model.ecopar.ψ
+	χ = model.ecopar.χ
+	λ = model.prices[1]
+	ω = model.prices[2]
 # 0.2 Pre-allocate
 	h_e::Float64=NaN
 	h_w::Float64=NaN
@@ -46,6 +50,9 @@ function fullrungekutta!(model::OTEmodel)
 		model.compar.verbosebool && println("States: ", model.states[2:7, i])
 		model.compar.verbosebool && println("Controls: ", model.controls[1:2,i], " he: ",h_e)
 	end
+	#Fill for the value of l and p in θ_w_u:
+	model.controls[3,globalsize] = ( ω*model.states[1,globalsize]/(λ*χ) )^(1.0/ψ)
+	model.controls[4,globalsize] = ( χ/model.states[1,globalsize]*model.controls[3,globalsize]^(1.0+ψ)/(model.controls[1,globalsize]^α*(1.0-β*model.controls[2,globalsize]^σ)) )
 
 # 3. Global problem
 # 3.1 Calculate ϕ_e from states and controls at globalsize

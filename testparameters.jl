@@ -2,6 +2,8 @@
 ## Save with other name to keep particular combinations of parameters
 
 # 1. Economic parameters
+utilitarian = true
+
 ecopar=EconomicParameters(
 	# 1.1 Workers' parameters
 	2.0192,	# χ::Float64 	# Scale parameter for labor supply
@@ -18,14 +20,14 @@ ecopar=EconomicParameters(
 	0.12873,# δ::Float64	# Entrepreners' informal demand scale parameter
 	0.7341,	# γ::Float64	# Entrepreneurs' informal demand elasticity
 	# 1.4 Planner's parameters
-	false,	# utilit::Bool	# Indicator of utilitarian planner
+	utilitarian,	# utilit::Bool	# Indicator of utilitarian planner
 	0.1,	# ϕ::Float64 	# Concave utilitarian parameter
 	0.15 	# G::Float64	# Expenditure needs
 	)	# Close constructor call
 
 # 2. Distribution parameters
 # 2.1 Type of distribution
-uniform = true	# ::Bool	# Indicator of uniform distributions.
+uniform = false	# ::Bool	# Indicator of uniform distributions.
 if uniform # Uniform case
 	# 2.2 Distribution moments
 	μ_w=10.0	# ::Float64	# Mean of worker's ability
@@ -77,28 +79,39 @@ compar=ComputationParameters(
 
 # 4. Initial guess for prices and final states/costates
 if uniform == true #For uniform case
-	# 4.1 Guess for prices
-	λ_bar	=   0.0004571
-	ω_bar	=   1.33749*λ_bar
-	priceguess= [λ_bar, ω_bar]
-	# 4.2 Guess for final states
-	ew_u	=   dispar.θ_e_u*(1.0-0.007)
-	ϕ_e_u	=	NaN # Ve*he @ ew_u (filled after entrepreneurs' problem)
-	u_u		=   770
-	#Rawlsian case:
-	# 4.1 Guess for prices
-	λ_bar	=   1.0
-	ω_bar	=   1.34318
-	priceguess= [λ_bar, ω_bar]
-	# 4.2 Guess for final states
-	u_u		=   640.7
+	if utilitarian == true
+		# 4.1 Guess for prices
+		λ_bar	=   0.0004571
+		ω_bar	=   1.33749*λ_bar
+		priceguess= [λ_bar, ω_bar]
+		# 4.2 Guess for final states
+		ϕ_e_u	=	NaN # Ve*he @ ew_u (filled after entrepreneurs' problem)
+		u_u		=   770
+	else #Rawlsian case:
+		# 4.1 Guess for prices
+		λ_bar	=   1.0
+		ω_bar	=   1.34318
+		priceguess= [λ_bar, ω_bar]
+		# 4.2 Guess for final states
+		u_u		=   640.7
+	end #end if
 else #For log-normal case
-	# 4.1 Guess for prices
-	λ_bar	=   1.0
-	ω_bar	=   1.2
-	priceguess= [λ_bar, ω_bar]
-	# 4.2 Guess for final states
-	u_u		=   3000.0
+	if utilitarian == true
+		# 4.1 Guess for prices
+		λ_bar	=   0.0004571
+		ω_bar	=   1.33749*λ_bar
+		priceguess= [λ_bar, ω_bar]
+		# 4.2 Guess for final states
+		ϕ_e_u	=	NaN # Ve*he @ ew_u (filled after entrepreneurs' problem)
+		u_u		=   770
+	else #Rawlsian case:
+		# 4.1 Guess for prices
+		λ_bar	=   1.0
+		ω_bar	=   1.2
+		priceguess= [λ_bar, ω_bar]
+		# 4.2 Guess for final states
+		u_u		=   5000.0
+	end #end if
 end #end if
 
 ew_u	=   dispar.θ_e_u*(1.0-0.007)

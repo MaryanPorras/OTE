@@ -29,11 +29,6 @@ function modeldata(model::OTEmodel,lenght_sol::Int64)
 	for i in [MarginalTaxes,taxliabilities,controls_full,debug,Propositions]
 		fill!(i,NaN);
 	end #end for
-	# 0.5 Define the values of l and p in θ_w_u:
-	l_u::Float64    = ( ω*model.states[1,globalsize]/(λ*χ) )^(1.0/ψ)
-	p_u::Float64    = ( χ/model.states[1,globalsize]*l_u^(1.0+ψ)/(model.controls[1,globalsize]^α*(1.0-β*model.controls[2,globalsize]^σ)) )
-	model.controls[3,globalsize] = l_u
-	model.controls[4,globalsize] = p_u
 
 # 1. Define some of the elements for the dataframe:
 	for i in first_sol_Global:fullsize

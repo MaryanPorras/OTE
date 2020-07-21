@@ -14,7 +14,7 @@ using ForwardDiff
 # 1.2.1 Extend prevfloat for duals
 	Base.nextfloat(d::ForwardDiff.Dual{T,V,N}) where {T,V,N} = ForwardDiff.Dual{T}(nextfloat(d.value), d.partials)
 	Base.prevfloat(d::ForwardDiff.Dual{T,V,N}) where {T,V,N} = ForwardDiff.Dual{T}(prevfloat(d.value), d.partials)
-
+	Base.one(irr::AbstractIrrational) = one(irr*1) 
 # 1.3 Saving output
 using DataFrames
 using CSV

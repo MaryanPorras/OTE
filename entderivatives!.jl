@@ -4,8 +4,12 @@ function entderivatives!(du,u,pa,e)
 	μ 	= u[2]
 	λ	= pa.prices[1]
 	ω	= pa.prices[2]
-# 1. Obtain densities
-	h_e=pa.modist.he(pa.dispar.θ_w_u, e)
+# 1. Obtain densities, consider out of domain cases
+	if e<pa.dispar.θ_e_l || e>pa.dispar.θ_e_u
+		h_e=zero(e)
+	else
+		h_e=pa.modist.he(pa.dispar.θ_w_u, e)
+	end
 
 # 2. Construct state object
 	vv = [e, uu, μ, h_e]
@@ -23,4 +27,3 @@ function entderivatives!(du,u,pa,e)
 	# println(du)
 	return nothing
 end
-

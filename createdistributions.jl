@@ -58,6 +58,7 @@ dist_marginal_lnθe = Normal(dispar.μ_e,dispar.σ2_e^0.5); #This is the distrib
 		# 2.1.2 Workers' marginal density (hw)
 		function hw_lognorm_NoCov(θvar,evar)
 			# h_w(θ,e) = F_e|w(e|θ)*f_w(θ)
+			evar <= dispar.θ_e_l && (return 0.0)
 			1.0/θvar*pdf(dist_marginal_lnθw, log(θvar))*( cdf(dist_marginal_lnθe, log(evar)) - cdf(dist_marginal_lnθe, log(dispar.θ_e_l)) )*cons_toMod;
 		end #end function
 		hw_lognorm = hw_lognorm_NoCov
@@ -65,6 +66,7 @@ dist_marginal_lnθe = Normal(dispar.μ_e,dispar.σ2_e^0.5); #This is the distrib
 		# 2.1.3 Entrepreneurs' marginal density (he)
 		function he_lognorm_NoCov(θvar,evar)
 			# h_e(θ,e) = F_w|e(θ|e)*f_e(e)
+			θvar <= dispar.θ_w_l && (return 0.0)
 			1.0/evar*pdf(dist_marginal_lnθe, log(evar))*( cdf(dist_marginal_lnθw, log(θvar)) - cdf(dist_marginal_lnθw, log(dispar.θ_w_l)) )*cons_toMod;
 		end #end function
 		he_lognorm = he_lognorm_NoCov
@@ -74,6 +76,7 @@ dist_marginal_lnθe = Normal(dispar.μ_e,dispar.σ2_e^0.5); #This is the distrib
 		function hw_lognorm_Cov(θvar,evar)
 			(val,err) = hcubature(x -> gg_lognorm(θvar,x[1]), [dispar.θ_e_l],[evar]);
 			return val;
+			evar <= dispar.θ_e_l && (return 0.0)
 		end #end function
 		hw_lognorm = hw_lognorm_Cov
 
@@ -81,6 +84,7 @@ dist_marginal_lnθe = Normal(dispar.μ_e,dispar.σ2_e^0.5); #This is the distrib
 		function he_lognorm_Cov(θvar,evar)
 			(val,err) = hcubature(x -> gg_lognorm(x[1],evar), [dispar.θ_w_l],[θvar]);
 			return val;
+			θvar <= dispar.θ_w_l && (return 0.0)
 		end #end function
 		he_lognorm = he_lognorm_Cov
 	end #end if
