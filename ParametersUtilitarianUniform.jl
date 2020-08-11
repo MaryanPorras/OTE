@@ -18,14 +18,14 @@ ecopar=EconomicParameters(
 	0.12873,# δ::Float64	# Entrepreners' informal demand scale parameter
 	0.7341,	# γ::Float64	# Entrepreneurs' informal demand elasticity
 	# 1.4 Planner's parameters
-	false,	# utilit::Bool	# Indicator of utilitarian planner
+	true,	# utilit::Bool	# Indicator of utilitarian planner
 	0.1,	# ϕ::Float64 	# Concave utilitarian parameter
 	0.15 	# G::Float64	# Expenditure needs
 	)	# Close constructor call
 
 # 2. Distribution parameters
 # 2.1 Type of distribution
-uniform = false	# ::Bool	# Indicator of uniform distributions.
+uniform = true	# ::Bool	# Indicator of uniform distributions.
 if uniform # Uniform case
 	# 2.2 Distribution moments
 	μ_w=10.0	# ::Float64	# Mean of worker's ability
@@ -89,11 +89,4 @@ New_State_u	=	NaN # Ve*he @ ew_u (filled after entrepreneurs' problem)
 μ_u		=   0.0 # Fixed
 L_u		=   0.0	# Fixed
 Y_u		=   0.0	# Fixed
-
-ϕ_e_u =   3000.0
-λ_bar =   1.0
-ω_bar =   1.2
-priceguess= [λ_bar, ω_bar]
-#mbar=10.0: ω_min=1.342555  ω_max=1.339170  -- ω_max_max=1.343049 e(θw_lb)=θe_lb (but bunching not addressed)
-
 finalstateguess=[ew_u, New_State_u, u_u, μ_u, L_u, Y_u]

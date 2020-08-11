@@ -12,12 +12,15 @@ fig_graphs && (fig_main = true) # Indicator for main figures.
 fig_graphs && (fig_GloAndEnt = false) # Indicator for figures of both problems.
 fig_graphs && (fig_debug = false) # Indicator for debug figures.
 fig_graphs && (fig_others = false) # Indicator for debug figures.
+export_results = true #Indicator to export the results dataframe to excel.
 
 # 1 Load packages definitions and functions
 include("OTEutils.jl")
 
 # 2 Set parameters and initialize
 include("testparameters.jl")
+#include("testparametersRawlsianUniform.jl")
+#include("testparametersUtilitarianUniform.jl")
 	# This defines:
 		# Parameter structures:	ecopar compar dispar
 		# Initial guesses: 		priceguess finalguess
@@ -34,6 +37,7 @@ lenght_sol = fullrungekutta!(model)
 
 # 5 Generate results
 Results_DF = modeldata(model,lenght_sol)
+export_results && CSV.write("Results_DF.csv", Results_DF)
 
 # 6 Plot results
 fig_graphs && (fig_main && graphs_MainGlobal(Results_DF,".\\Graphs"))
